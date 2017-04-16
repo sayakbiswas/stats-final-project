@@ -1,2 +1,5 @@
 psa_dat = read.table("http://www.stat.ufl.edu/~athienit/STA6166/assignment3_1.txt")
 View(psa_dat)
+source("http://www.stat.ufl.edu/~athienit/check.R")
+reg <- lm(V2 ~ V3 + V4 + V5 + V6 + V7 + V8, data = psa_dat)
+check(reg, tests=TRUE)
