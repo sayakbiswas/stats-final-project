@@ -1,3 +1,5 @@
+source("http://www.stat.ufl.edu/~athienit/check.R")
+source("http://www.stat.ufl.edu/~athienit/stepT.R")
 psa_dat = read.table("http://www.stat.ufl.edu/~athienit/STA6166/assignment3_1.txt", 
                      col.names = c('ID', 'PSA_lvl', 'Cancer_vol', 'Weight', 'Age', 
                                    'BPH', 'SVI', 'CP', 'Gleason_score'))
@@ -17,13 +19,18 @@ cor_mat = round(cor(psa_dat[c('ID', 'PSA_lvl', 'Cancer_vol', 'Weight', 'Age',
                     'BPH', 'SVI', 'CP', 'Gleason_score')]), 3)
 View(cor_mat)
 
-source("http://www.stat.ufl.edu/~athienit/check.R")
-
 #Full Linear Model
 psa.lm.full <- lm(PSA_lvl ~ Cancer_vol + Weight + Age + BPH + SVI + CP, data = psa_dat)
 check(psa.lm.full, tests=TRUE)
 summary(psa.lm.full)
+anova(psa.lm.full)
+AIC(psa.lm.full)
 plot(psa.lm.full)
+stepT(psa.lm.full,alpha.rem=0.2,direction="backward")
+psa.lm.red = lm(PSA_lvl ~ Cancer_vol + SVI, data = psa_dat)
+summary(psa.lm.red)
+anova(psa.lm.red)
+AIC(psa.lm.red)
 
 #Partial Quadratic Model - Derived using the correlation matrix
 cancervol_svi <- psa_dat$Cancer_vol*psa_dat$SVI
@@ -32,3 +39,17 @@ svi_cp <- psa_dat$SVI*psa_dat$CP
 psa.qm.partial <- lm(PSA_lvl ~ Cancer_vol + Weight + Age + BPH + SVI + CP + cancervol_svi 
                      + cancervol_cp + svi_cp, data = psa_dat)
 summary(psa.qm.partial)
+anova(psa.qm.partial)
+AIC(psa.qm.partial)
+plot(psa.qm.partial)
+stepT(psa.qm.partial,alpha.rem=0.2,direction="backward")
+psa.qm.partial_red = lm(formula = PSA_lvl ~ Cancer_vol + BPH + SVI + CP + cancervol_svi + 
+                            cancervol_cp, data = psa_dat)
+summary(psa.qm.partial_red)
+anova(psa.qm.partial_red)
+AIC(psa.qm.partial_red)
+
+#Prediction
+newdata = data.frame(Cancer_vol=4.2633, Weight=22.783, Age=68, BPH=1.35, SVI=0, CP=0, 
+                     Gleason_score=6, cancervol_svi=0, cancervol_cp=0)
+predict(psa.qm.partial_red, newdata, interval='prediction', level=0.90)
