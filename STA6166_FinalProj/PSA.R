@@ -5,6 +5,15 @@ psa_dat = read.table("http://www.stat.ufl.edu/~athienit/STA6166/assignment3_1.tx
                                    'BPH', 'SVI', 'CP', 'Gleason_score'))
 View(psa_dat)
 
+#Descriptive Statistics
+length(psa_dat$ID)
+mean_psa = mean(psa_dat$PSA_lvl)
+mean_psa
+sd_psa = sd(psa_dat$PSA_lvl)
+sd_psa
+median_psa = median(psa_dat$PSA_lvl)
+median_psa
+
 #Scatterplots of PSA Level with predictors
 plot(psa_dat$PSA_lvl~psa_dat$Cancer_vol, xlab='Cancer Volume', ylab='PSA Level', pch=19)
 plot(psa_dat$PSA_lvl~psa_dat$Weight, xlab='Weight', ylab='PSA Level', pch=19)
