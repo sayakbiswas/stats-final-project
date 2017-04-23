@@ -20,57 +20,58 @@ cor_mat = round(cor(psa_dat[c('ID', 'PSA_lvl', 'Cancer_vol', 'Weight', 'Age',
 View(cor_mat)
 
 #Full Linear Model
-psa.lm.full <- lm(PSA_lvl ~ Cancer_vol + Weight + Age + BPH + SVI + CP, data = psa_dat)
+psa.lm.full <- lm(PSA_lvl ~ Cancer_vol + Weight + Age + BPH + SVI + CP + Gleason_score, 
+                  data = psa_dat)
 summary(psa.lm.full)
 anova(psa.lm.full)
 AIC(psa.lm.full)
 plot(psa.lm.full)
 check(psa.lm.full, tests=TRUE)
 
+#Transform Model
 library(car)
 bc2=powerTransform(psa.lm.full)
 summary(bc2)
-PSA_lvlT = bcPower(psa_dat$PSA_lvl, 0.0987)
-psa.lm.full2 <- lm(PSA_lvlT ~ Cancer_vol + Weight + Age + BPH + SVI + CP, data = psa_dat)
+PSA_lvlT = bcPower(psa_dat$PSA_lvl, 0.1004)
+psa.lm.full2 <- lm(PSA_lvlT ~ Cancer_vol + Weight + Age + BPH + SVI + CP + Gleason_score, 
+                   data = psa_dat)
 check(psa.lm.full2, tests=TRUE)
+summary(psa.lm.full2)
 
+#Automated Model Reduction
 stepT(psa.lm.full2,alpha.rem=0.2,direction="backward")
-psa.lm.red = lm(PSA_lvlT ~ Cancer_vol + BPH + SVI, data = psa_dat)
+psa.lm.red = lm(PSA_lvlT ~ Cancer_vol + BPH + SVI + Gleason_score, data = psa_dat)
 summary(psa.lm.red)
 anova(psa.lm.red)
 AIC(psa.lm.red)
 
-#Partial Quadratic Model - Derived using the correlation matrix
-cancervol_svi <- psa_dat$Cancer_vol*psa_dat$SVI
-cancervol_cp <- psa_dat$Cancer_vol*psa_dat$CP
-svi_cp <- psa_dat$SVI*psa_dat$CP
-psa.qm.partial <- lm(PSA_lvl ~ Cancer_vol + Weight + Age + BPH + SVI + CP + cancervol_svi 
-                     + cancervol_cp + svi_cp, data = psa_dat)
-summary(psa.qm.partial)
-anova(psa.qm.partial)
-AIC(psa.qm.partial)
-plot(psa.qm.partial)
-check(psa.qm.partial)
+#Interaction
+scatterplot(PSA_lvlT~Cancer_vol|SVI,smooth=FALSE,reg.line=lm,data=psa_dat)
+scatterplot(PSA_lvlT~BPH|SVI,smooth=FALSE,reg.line=lm,data=psa_dat)
+scatterplot(PSA_lvlT~Gleason_score|SVI,smooth=FALSE,reg.line=lm,data=psa_dat)
 
-bc3=powerTransform(psa.qm.partial)
-summary(bc3)
-PSA_lvlT = bcPower(psa_dat$PSA_lvl, 0.092)
-psa.qm.partial2 <- lm(PSA_lvlT ~ Cancer_vol + Weight + Age + BPH + SVI + CP + cancervol_svi 
-                     + cancervol_cp + svi_cp, data = psa_dat)
-check(psa.lm.full2, tests=TRUE)
+#Interaction Model - Added interaction terms
+cancervol <- psa_dat$Cancer_vol
+svi <- psa_dat$SVI
+bph <- psa_dat$BPH
+gscore <- psa_dat$Gleason_score
+psa.model <- lm(PSA_lvlT ~ cancervol + bph + svi + gscore + cancervol:svi + bph:svi + gscore:svi,
+                data = psa_dat)
+check(psa.model, tests = TRUE)
+summary(psa.model)
+anova(psa.model)
+AIC(psa.model)
 
-summary(psa.qm.partial2)
-anova(psa.qm.partial2)
-AIC(psa.qm.partial2)
-plot(psa.qm.partial2)
-stepT(psa.qm.partial2,alpha.rem=0.2,direction="backward")
-psa.qm.partial2_red = lm(formula = PSA_lvlT ~ Cancer_vol + BPH + SVI + cancervol_svi + 
-                             cancervol_cp + svi_cp, data = psa_dat)
-summary(psa.qm.partial2_red)
-anova(psa.qm.partial2_red)
-AIC(psa.qm.partial2_red)
+#Automated Model Reduction
+stepT(psa.model,alpha.rem=0.2,direction="backward")
+psa.model.red = lm(PSA_lvlT ~ cancervol + bph + gscore + cancervol:svi + bph:svi + gscore:svi
+                   , data = psa_dat)
+summary(psa.model.red)
+anova(psa.model.red)
+AIC(psa.model.red)
+
 
 #Prediction
-newdata = data.frame(Cancer_vol=4.2633, Weight=22.783, Age=68, BPH=1.35, SVI=0, CP=0, 
-                     Gleason_score=6, cancervol_svi=0, cancervol_cp=0, svi_cp=0)
-predict(psa.qm.partial_red, newdata, interval='prediction', level=0.90)
+newdata = data.frame(cancervol=4.2633, Weight=22.783, Age=68, bph=1.35, svi=0, CP=0, 
+                     gscore=6)
+predict(psa.model.red, newdata, interval='prediction', level=0.90)
