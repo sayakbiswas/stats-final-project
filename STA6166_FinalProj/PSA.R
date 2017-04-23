@@ -67,8 +67,8 @@ stepT(psa.qm.partial2,alpha.rem=0.2,direction="backward")
 psa.qm.partial2_red = lm(formula = PSA_lvlT ~ Cancer_vol + BPH + SVI + cancervol_svi + 
                              cancervol_cp + svi_cp, data = psa_dat)
 summary(psa.qm.partial2_red)
-anova(psa.qm.partial_red)
-AIC(psa.qm.partial_red)
+anova(psa.qm.partial2_red)
+AIC(psa.qm.partial2_red)
 
 #Prediction
 newdata = data.frame(Cancer_vol=4.2633, Weight=22.783, Age=68, BPH=1.35, SVI=0, CP=0, 
