@@ -15,40 +15,30 @@
 The problem is to model the prostate-specific antigen(PSA) with respect to some clinical measurements. The provided number of data points in the sample is 97. I calculated some descriptive statistics on the sample provided. The mean PSA level of the sample is 23.73 mg/ml with a standard deviation of 40.78 mg/ml and a median value of 13.33 mg/ml.
 \par
 Since we are to model PSA Level, we take it as the response variable and the rest of the variables as the predictors. To get an initial idea about the kind of relationship PSA Level has with the other variables we plot scatter graphs. Unfortunately, with this data set te scatterplots don't quite paint a clear picture of the relationship between the variables except \textit{PSA Level vs. Cancer Volume} which seems to present a slight positive relationship. So, next we create a correlation matrix of the various variables. We can see that there is a moderately positive correlation between \textit{Cancer Volume} and \textit{Capsular Penetration}.\\
-\includegraphics[width=70mm,scale=0.25]{psa_cancervol.png}
-\includegraphics[width=70mm,scale=0.25]{Correlation_Matrix.png}
-\subsection{Initial Model}
+\includegraphics[width=50mm,scale=0.550mm,scale=0.550mm,scale=0.550mm,scale=0.550mm,scale=0.5]{psa_cancervol.png}\\
+\includegraphics[width=\textwidth]{Correlation_Matrix.png}
+\par
 Keeping the previous observations in mind, we now develop a full linear model using all the predictors and without any interaction terms. Assuming all the model assumptions are met(we will verify this later), we test the overall fit of the model with the below hypotheses:\\
 \begin{center}
 $H_0: \beta_1=...=\beta_7=0$ vs $H_a: \text{at least one of them} \neq 0$\\
 \end{center}
 This initial model has $R^2 = 45.85\%$ and ${R^2}_{adj} = 41.59\%$. This means that this model is able to explain a large portion of the variability. Also the test statistic value is $T.S. = 10.77$ with an associated p-value of almost 0 found using an $F_{7,39}$ distribution. So, at least one predictor is significant. We will use this information to check if the model can be reduced in any way as the AIC value is around 952.17.
-
-\subsection{Model Assumptions}
-For now let's validate if the model assumptions are met. We make use of the automated \textit{check} function provided by the professor. The graphs generated are shown below:\\
+\par For now let's validate if the model assumptions are met. We make use of the automated \textit{check} function provided by the professor. The graphs generated are shown below:\\
 \includegraphics[width=\textwidth]{psa_check.png}\\ 
 \begin{itemize}
   \item We can see that the QQ plot and the histogram show heavier left and right tails compared to the normal. Also, the Shapiro-Wilk test which gives a p-value of almost 0 and hence confirms violation of normality. 
   \item As there is no discernible pattern in the time-series plot of the data, we can safely conclude the data to be independent.
   \item From the graph, variance doesn't seem to constant at all places but the fit of the model seems to be almost correct.
 \end{itemize}
-
-\subsection{Transformation}
 In light of the above, we perform Box-Cox transformation with an estimated power of 0.1004 which fixes the violations as can be seen below:\\
 \includegraphics[width=\textwidth]{psa_transform_check.png}\\
-
-\subsection{Model Reduction}
-Now, we perform automatic reduction of model using the stepT function provided to us. This removes the predictors with high p-values and the ones which are highly correlated. Thus \textit{Age}, \textit{Weight} and \textit{Capsular Penetration} are removed. We now see that the $R^2$ has increased to 60.71\% and ${R^2}_{adj} = 59\%$. Also, the AIC value has reduced to 273.99.
-
-\subsection{Interaction Model}
+Now, we perform automatic reduction of model using the stepT function provided to us. This removes the predictors with high p-values and the ones which are highly correlated. Thus \textit{Age}, \textit{Weight} and \textit{Capsular Penetration} are removed. We now see that the $R_2$ has increase to 60.71\% and ${R^2}_{adj} = 59\%$. Also, the AIC value has reduced to 273.99.
+\par
 We still haven't addressed the fact that we have a qualitative predictor i.e. \textit{Seminal vesicle invasion}. So, we use scatterplots with regression line enabled to check for interaction between this and the other variables.\\
 \includegraphics[width=0.3\textwidth]{svi_cancervol.png}
 \includegraphics[width=0.3\textwidth]{svi_bph.png}
 \includegraphics[width=0.3\textwidth]{svi_gscore.png}\\
-From the plots, there seems to be an interaction between \textit{Seminal vesicle invasion} and the other predictors. So, we add the corresponding interaction terms to the model. This improves the model a bit and we get $R^2 = 63.33\%$ and ${R^2}_{adj} = 60.89\%$. More importantly, the AIC reduces to 271.28. Next, we perform one more round of automatic model selection, which removes the \textit{Seminal vesicle invasion} predictor while leaving the interaction terms as per the higher p-value. This has marginal increase in the R-squared and the R-square adjusted values and a decrease in the AIC value. 
-
-\subsection{Final Model}
-We pick this as our final model as it has the lowest AIC and highest R-squared adjusted.\\
+From the plots, there seems to be an interaction between \textit{Seminal vesicle invasion} and the other predictors. So, we add the corresponding interaction terms to the model. This improves the model a bit and we get $R^2 = 63.33\%$ and ${R^2}_{adj} = 60.89\%$. More importantly, the AIC reduces to 271.28. Next, we perform one more round of automatic model selection, which removes the \textit{Seminal vesicle invasion} predictor while leaving the interaction terms as per the higher p-value. This has marginal increase in the R-squared and the R-square adjusted values and a decrease in the AIC value. We pick this as our final model as it has the lowest AIC and highest R-squared adjusted.\\
 $\ln(PSA\_lvl) = -0.67 + 0.11*cancervol + 0.14*bph + 0.33*gscore - 0.06*cancervol*svi 
 - 0.21*bph*svi + 0.28*gscore*svi$\\
 This model has $R^2 = 0.6384, {R^2}_{adj} = 0.6143$ and $AIC = 269.94$.
