@@ -253,3 +253,4 @@ TSWLatexianTemp*
 # expex forward references with \gathertags
 *-tags.tex
 Deliverables/
+*.zip
